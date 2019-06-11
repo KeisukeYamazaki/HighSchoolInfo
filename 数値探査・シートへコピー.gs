@@ -4,16 +4,24 @@ function CopyToSheet() {
   
   var grade = sheet.getRange("R5").getValue();
   var LastRow = sheet.getLastRow();
+  if(sheet.getRange("G19") != "") {
+    grade += sheet.getRange("G19").getValue();
+  }
   
   sheet.getRange(LastRow + 1, 13).setValue("-1");
   
   var data = sheet.getRange(30, 1, LastRow, 13).getValues();
   
   var middle = 0;
-  for(var i = 0; i < LastRow; i++) {
+  for(var i = 0; true; i++) {
     if(data[i][12] == -1) {
-      grade -= 1;
-      i = 0;
+      if(data[i-1][12] > grade) {
+        grade = data[i-1][12];
+        i -= 2;
+      } else {
+        grade -= 1;
+        i = 0;
+      }
     } else if(data[i][12] == grade) {
       middle = i + 30;
       break;
@@ -28,7 +36,7 @@ function CopyToSheet() {
     top = 30;
   } else if(LastRow - middle <= 1) {
     // middle より下に3つない場合
-    top = LastRow - 8;
+    top = LastRow - 7;
   } else {
   // それ以外(通常)
     top = middle - 5;
@@ -39,5 +47,8 @@ function CopyToSheet() {
   
   //行を削除
   sheet.deleteRows(29, 80);
+  
+  //行を追加しておく
+  sheet.insertRowsAfter(29, 80);
   
 }

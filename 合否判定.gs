@@ -16,7 +16,7 @@ function pass_need() {
    var data = sheet.getRange(8, 5, 8, 8).getValues();  
    var school = [];
    var reg = /英|[英数漢]検|かつ|または|([0-9]+)|(\/[0-9]+)/g;
-   for(var i = 0; i < 7; i++ ) {
+   for(var i = 0; i < 8; i++ ) {
      school[i] = [];
      for(var j = 0; j < 1; j++) {
        school[i] = data[i][0].match(reg);
@@ -25,21 +25,43 @@ function pass_need() {
    }
   
    //②判定する操作
-   var andStr = [];
-   var orStr = [];
-   var out = ["英","英検","数検","漢検"]; 
+   var judgeData = [];
+   var finalJudgment;
+   var r = 8;
    
-   for(var k = 0; k < 7; k++){
-     for(var l = 0; out.length; l++) {
-       if(school[k].indexOf(out[l]) == 1) {
-         break;
-       }
-     }
-     if(school[k].indexOf("かつ") != -1) {
+   for(var k = 0; k < 8; k++, r++){
+     if(significanceTest(school[k]) == 1) {//検定があるものは評価しない
+       finalJudgment = "";
+     } else if(school[k].indexOf("かつ") != -1) {   //「かつ」が２以上あるものは評価しない
        var result = school[k].indexOf("かつ");
-       if(school[k].indexOf("かつ", result + 1)) {
+       if(school[k].indexOf("かつ", result + 1) != -1) {
+         continue;
+       } else {
+         judgeData = school[k].filter(function(a) {
+         return a !== "かつ";
+         });
+         finalJudgment = andJudgment(num135, num45, num75, num50, num25, num15, judgeData);
        }
-     } 
+     } else if(school[k].indexOf("または") != -1) {　　　　//「または」の場合
+       judgeData = school[k].filter(function(b) {
+         return b !== "または";
+       });
+       finalJudgment = orJudgment(num135, num45, num75, num50, num25, num15, judgeData);
+     } else {
+       judgeData = school[k];
+       finalJudgment = normalJudgment(num135, num45, num75, num50, num25, num15, judgeData);
+     }
+     sheet.getRange(r, 14).setValue(finalJudgment);
    }
    
+}
+
+function significanceTest(school){
+  var out = ["英","英検","数検","漢検"]; 
+  for(var i = 0; i < out.length; i++) {
+    if(school.indexOf(out[i]) != -1) {
+      return 1;
+    }
+  }
+  return 0;
 }
